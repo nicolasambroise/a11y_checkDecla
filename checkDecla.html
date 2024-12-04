@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CheckDecla : Script pour vérifier la validité de la déclaration</title>
+	<meta name="description" content="Ce script sert à vérifier si tous les champs obligatoire sont présent dans la déclaration d'accessibilité">
+    <style>
+	html {
+		font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+	}
+
+	body {
+		margin: 0;
+		font-size: 16px;
+		line-height: 1.5;
+		word-wrap: break-word;
+		color: #1f2328;
+	}
+	header,main,footer{
+		max-width: 1012px;
+		margin-right: auto;
+		margin-left: auto;
+	}
+	h1 {
+		padding-bottom: 0.3em;
+		font-size: 2em;
+		border-bottom: 1px solid #eaecef;
+		margin-bottom: 16px;
+		font-weight: 600;
+		line-height: 1.25;
+	}
+	h2 {
+		padding-bottom: 0.3em;
+		font-size: 1.5em;
+		border-bottom: 1px solid #eaecef;
+		margin-top: 24px;
+		margin-bottom: 16px;
+		font-weight: 600;
+		line-height: 1.25;
+	}
+	.bookmarklet{
+		background-color: aliceblue;
+		padding: 3px 6px;
+	}
+	pre{
+		padding: 16px;
+		overflow: auto;
+		font-size: 85%;
+		line-height: 1.45;
+		background-color: #f6f6f6;
+		border-radius: 6px;
+		width: 65%;
+		margin: 0 auto;
+	}
+	footer{
+		text-align: right;
+	}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Bookmarklet : Vérification de la validité de la déclaration d'accessibilité</h1>
+    </header>
+
+    <main role="main">
+		<article class="markdown-body entry-content container-lg" itemprop="text">
+			<h2>Installation rapide du bookmarklet</h2>
+			<p>Pour installer le Bookmarklet il suffit de <strong>glisser le lien</strong> suivant sur votre barre de favoris :
+				<a class="bookmarklet" href="javascript:(function(){document.body.appendChild(document.createElement('script')).src='https://webux.gouv.etat.lu/a11y/a11y_checkDecla/script.js';})();" title="Renowify - drag me to a toolbar" ICON="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACQElEQVQ4jZWTTUhUURTH/+fcO+N3RkIfm5rW0qpNO4tQaGREa95klCAhFkQIQUW7oTYtIoloFRGZ1Mw8I3yUYxky0KaNJGhCYLQI7ItQZxznzfu6LV5jwzAmnd09cH73nP/5H6BaxMFV81WCqrwVAPQ/7w7lLKfdM92QkDBZitlPK18nZ87N2OUFsgKgtHtaI+00h9eKdpsMijmr4P5gwU0sONSSbZlGCh5icKsB6NSTSIvF62+ER/NW3jps9E4tbTWCD1AgEJTN7kMCvUudfHEeALSUJgAdPxdAmThcACqW7LzOQi4nouPDAEgiDgbBi45GOoi9kB572VWi6zG91CoNDh6Uy0f3pDx4h+y83fa3gw9/hGS317WVAUB1Pehqqt+OIbVenEieefVeQSGWjDxVrMLWqmw1BozFkuAM3RdE1IldAcFzANDYHNitpLphE18DQWnJ8B2uoxPIexFjwFiEBlHa1sa+iUh5AVIAsDT/63Mxa816cNujjztvilpx0c06l8f606+hQZQ+9QE+DU7B/e4V3AMAkIlnHMlyQgRFMzXhqp33Rsb60rcqi31Aq98KKZHgoOiOx8FQIFIyAQdZb819KwINF6BAlcVl9vGF1BJhI5oI3y+ljz8L7zs9emwbgE3tXW5l6nnUs0PUFKdY0EfOySuJs+NftjJS5S2gb6SjwaytuQ2oIyx5wcpZ3wK1slEExerKtHUpfTdd/Bdg45j6UtpeE2a7Yzr7mVHgIM9Cr5/UdX0THcrjP875N9Jd5mplQUdUAAAAAElFTkSuQmCC">Renowify - check Decla</a>
+			</p>
+			<h2>Collaborer</h2>
+			<p>N'hésitez pas à me remonter les problèmes et vos suggessions d'améliorations.</p>
+		</article>
+	</main>
+	
+	<footer role="contentinfo">
+		<p>Auteur : N.AMBROISE</p>
+	</footer>
+</body>
+</html>
