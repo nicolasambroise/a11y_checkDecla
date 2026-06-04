@@ -134,9 +134,12 @@
     const totalPages = report.results.length;
 
     report.results.forEach(item => {
-      totalNC += item.declarations.nc.length;
-      totalCD += item.declarations.cd.length;
-      totalEX += item.declarations.ex.length;
+      if ('declarations' in item){
+        totalNC += item.declarations.nc.length;
+        totalCD += item.declarations.cd.length;
+        totalEX += item.declarations.ex.length;
+      }
+      else{console.log(item);}
     });
 
     return {
@@ -161,10 +164,14 @@
     const dist = {};
 
     report.results.forEach(item => {
-      let status = item.declarations.info.conf || "Inconnu";
-      if(status === "partially compliant" || status === "teilweise"){ status = "conformité partielle";}
+      if ('declarations' in item) {
+        let status = item.declarations.info.conf || "Inconnu";
+        if (status === "partially compliant" || status === "teilweise") {
+          status = "conformité partielle";
+        }
 
-      dist[status] = (dist[status] || 0) + 1;
+        dist[status] = (dist[status] || 0) + 1;
+      }
     });
 
     return dist;
@@ -174,8 +181,10 @@
     const dist = {};
 
     report.results.forEach(item => {
-      const ref = item.declarations.info.referential || "Inconnu";
-      dist[ref] = (dist[ref] || 0) + 1;
+      if ('declarations' in item) {
+        const ref = item.declarations.info.referential || "Inconnu";
+        dist[ref] = (dist[ref] || 0) + 1;
+      }
     });
 
     return dist;
@@ -185,8 +194,10 @@
     const dist = {};
 
     report.results.forEach(item => {
-      const auditor = item.declarations.info.auditorName || "Inconnu";
-      dist[auditor] = (dist[auditor] || 0) + 1;
+      if ('declarations' in item) {
+        const auditor = item.declarations.info.auditorName || "Inconnu";
+        dist[auditor] = (dist[auditor] || 0) + 1;
+      }
     });
 
     return dist;
@@ -194,11 +205,13 @@
 
   function getDeclaLastUpdateYear(item){
     let date = "Inconnu";
-    const renewalDate = item.declarations.info.renewalDate;
-    const createdDate = item.declarations.info.createdDate
+    if ('declarations' in item) {
+      const renewalDate = item.declarations.info.renewalDate;
+      const createdDate = item.declarations.info.createdDate
 
-    if(renewalDate && renewalDate != "") date = renewalDate.substring(renewalDate.length - 4);
-    else if(createdDate && createdDate != "") date = createdDate.substring(createdDate.length - 4);
+      if (renewalDate && renewalDate != "") date = renewalDate.substring(renewalDate.length - 4);
+      else if (createdDate && createdDate != "") date = createdDate.substring(createdDate.length - 4);
+    }
     return date;
   }
 
@@ -206,8 +219,10 @@
     const dist = {};
 
     report.results.forEach(item => {
-      const date = getDeclaLastUpdateYear(item);
-      dist[date] = (dist[date] || 0) + 1;
+      if ('declarations' in item) {
+        const date = getDeclaLastUpdateYear(item);
+        dist[date] = (dist[date] || 0) + 1;
+      }
     });
 
     return dist;
@@ -257,7 +272,9 @@
   }
 
   function getPagesNotValid(report) {
-    return report.results.filter(item => item.declarations.valid && item.declarations.valid.trim() !== "");
+    return report.results.filter(item =>
+      ('declarations' in item && item.declarations.valid && item.declarations.valid.trim() !== "") ||  ('error' in item)
+    );
   }
 
   function renderNotValid(latest){
@@ -266,7 +283,7 @@
     const pagesNotValid = getPagesNotValid(latest);
     let content = "<h3>Problèmes detectés</h3><ul>"
     pagesNotValid.forEach(p => {
-      content += `<li><strong>${p.url}</strong>${p.declarations.valid}</li>`;
+      content += `<li><strong>${p.url}</strong>${p.declarations ? p.declarations.valid : p.error}</li>`;
     });
     content += "</ul>"
     container.innerHTML = content;
@@ -280,7 +297,7 @@
     const counter = {};
 
     report.results.forEach(item => {
-      if(item.iso == "FR") {
+      if(item.iso == "FR" && 'declarations' in item) {
         item.declarations.nc.forEach(nc => {
           nc = cleanSentence(nc);
           counter[nc] = (counter[nc] || 0) + 1;
@@ -297,7 +314,7 @@
     const counter = {};
 
     report.results.forEach(item => {
-      if(item.iso == "FR") {
+      if(item.iso == "FR" && 'declarations' in item) {
         item.declarations.cd.forEach(cd => {
           cd = cleanSentence(cd);
           counter[cd] = (counter[cd] || 0) + 1;
@@ -314,7 +331,7 @@
     const counter = {};
 
     report.results.forEach(item => {
-      if(item.iso == "FR") {
+      if(item.iso == "FR" && 'declarations' in item) {
         item.declarations.ex.forEach(ex => {
           ex = cleanSentence(ex);
           counter[ex] = (counter[ex] || 0) + 1;
@@ -342,7 +359,7 @@
 
     let content = "<h3>Déclaration trop ancienne</h3><ul>"
     outdated.forEach(p => {
-      content += `<li><strong>${p.url}</strong>(${p.declarations.info.createdDate})</li> `;
+      content += `<li><strong>${p.url}</strong> (${p.declarations.info.createdDate})</li> `;
     });
     content += "</ul>"
     container.innerHTML = content;

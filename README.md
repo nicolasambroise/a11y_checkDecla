@@ -5,10 +5,9 @@ markdown
 Ce projet permet suivre automatiquement l'état de plusieurs centaines de déclaration d'accessibilité en :
 
 1. parcourant chaque URL via Puppeteer  
-2. injectant un script d’audit (`decla.js`)  
-3. extrayant les informations d’accessibilité  
-4. générant un rapport daté  
-5. affichant un dashboard interactif avec graphiques
+2. extrayant les informations d’accessibilité  
+3. générant un rapport daté  
+4. affichant un dashboard interactif avec graphiques
 
 ---
 
@@ -35,8 +34,7 @@ project/
 │
 ├── crawler.js
 ├── report.js
-├── decla.js
-├── pages.json
+├── declaData.json
 │
 ├── results.json
 ├── reports/
@@ -70,7 +68,6 @@ node crawler.js
 Ce script :
 - lit pages.json
 - ouvre chaque page
-- injecte decla.js
 - extrait les informations
 - génère results.json
 

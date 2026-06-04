@@ -24,11 +24,6 @@ const validPages = pages.filter(p => p.status === 200);
 console.log(`➡️  ${validPages.length} pages à analyser\n`);
 
 // ---------------------------------------------
-// CHARGEMENT DU SCRIPT D'ANALYSE DE DECLA
-// ---------------------------------------------
-// const declaScript = fs.readFileSync('./decla.js', 'utf8');
-
-// ---------------------------------------------
 // EXTRACTEUR DOM (exécuté dans la page)
 // ---------------------------------------------
 function getExtractor() {
@@ -101,8 +96,8 @@ function getExtractor() {
     if(auditorName == "" ) msg += "<li>Pas d'auditeur indiqué</li>";
     if(emailContact == "" ) msg += "<li>Pas d'email de contact</li>";
     if(organization == "" ) msg += "<li>Pas d'organisation indiqué</li>";
-    if(cdDetails.length > 5 ) msg += "<li>Nombre de charges disproportionnées trop important</li>";
-    if(exDetails.length > 5 ) msg += "<li>Nombre d'exemptions trop important</li>";
+    if(cdDetails.length > 6 ) msg += "<li>Nombre de charges disproportionnées trop important</li>";
+    if(exDetails.length > 6 ) msg += "<li>Nombre d'exemptions trop important</li>";
 
 
     if(msg != "") {
@@ -156,12 +151,6 @@ async function analysePage(browser, pageInfo) {
     waitUntil: 'networkidle0',
     timeout: TIMEOUT
   });
-
-	//console.log(`- LOAD ${pageInfo.url}`);
-  // await page.evaluate(auditScript);
-	//await page.addScriptTag({ content: auditScript });
-
-	//await page.waitForSelector('#checkA11YPanel', { timeout: 20000 }); // 20 secondes
 
   const result = await page.evaluate(getExtractor());
 
