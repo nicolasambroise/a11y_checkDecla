@@ -1,0 +1,6 @@
+/node_modules
+/declaData.json
+/reports/
+/.idea
+/results.json
+/debug/*

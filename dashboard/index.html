@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Analyse Decla A11Y</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!--link type="text/css" rel="stylesheet" src="./dashboard.css"-->
+  <style>
+  body {
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 2rem;
+  }
+
+  h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  }
+
+  h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  }
+  h3 {
+  margin-top: .5rem;
+  margin-bottom: .5rem;
+  }
+
+  .grid {
+  display: grid;
+  gap: 1.5rem;
+  }
+
+  @media (min-width: 900px) {
+    .grid-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    }
+    .grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .card {
+  background: white;
+  padding: .5rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+
+  table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  }
+
+  table th, table td {
+  padding: .5rem;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+  }
+  
+  canvas.circular{
+      max-height: 300px;
+  }
+  </style>
+</head>
+
+<body>
+
+<h1>Dashboard Analyse Decla A11Y</h1>
+<div id="latest"></div>
+<div id="summary" class="grid grid-3"></div>
+
+<h2>Repartition</h2>
+<div id="charts" class="grid grid-4">
+  <div class="card"><canvas id="chartStatus" height="100" class="circular"></canvas></div>
+  <div class="card"><canvas id="chartReferential" height="100" class="circular"></canvas></div>
+  <div class="card"><canvas id="chartAuditor" height="100" class="circular"></canvas></div>
+  <div class="card"><canvas id="chartYear" height="100" class="circular"></canvas></div>
+</div>
+
+<h2>Déclaration non valide</h2>
+<div class="grid grid-2">
+  <div id="notValid" class="card"></div>
+  <div id="tooOld" class="card"></div>
+</div>
+
+<h2>Non conformité les plus fréquentes par type</h2>
+<div id="topNC" class="grid grid-3"></div>
+
+<!--script src="./dashboard.js"></script-->
+<script>
+  async function loadReports() {
+    const files = await fetch('../reports/')
+      .then(r => r.text());
+
+    const jsonFiles = [...files.matchAll(/report-[\d\-]+\.json/g)]
+      .map(m => m[0])
+      .sort();
+
+    const reports = [];
+    //console.log(jsonFiles.length);
+    //console.log(uniq(jsonFiles).lenght);
+
+    for (const file of uniq(jsonFiles)) {
+      const data = await fetch('../reports/' + file).then(r => r.json());
+      reports.push({ file, ...data });
+    }
+
+    //console.log(reports.length);
+    return reports;
+  }
+
+  function uniq(a) {
+    return Array.from(new Set(a));
+  }
+
+  function renderLatestDate(latest){
+    //console.log(latest);
+    const container = document.getElementById('latest');
+    container.innerHTML = `<p>Dernier run : <em>${latest.generatedAt}</em> sur ${latest.totalPages} pages</p>`;
+  }
+
+  function getAverageCounts(report) {
+    let totalNC = 0, totalCD = 0, totalEX = 0;
+    const totalPages = report.results.length;
+
+    report.results.forEach(item => {
+      totalNC += item.declarations.nc.length;
+      totalCD += item.declarations.cd.length;
+      totalEX += item.declarations.ex.length;
+    });
+
+    return {
+      avgNC: (totalNC / totalPages).toFixed(2),
+      avgCD: (totalCD / totalPages).toFixed(2),
+      avgEX: (totalEX / totalPages).toFixed(2)
+    };
+  }
+
+  function renderAverage(latest){
+    const averages = getAverageCounts(latest);
+    //console.log(latest);
+    const container = document.getElementById('summary');
+    container.innerHTML = `
+    <div class="card"><h3>Nombre moyen de non-conformité</h3>${averages.avgNC}</div>
+    <div class="card"><h3>Nombre moyen de charge disproportionnée</h3>${averages.avgCD}</div>
+    <div class="card"><h3>Nombre moyen de contenu exempté</h3>${averages.avgEX}</div>
+    `;
+  }
+
+  function getStatusDistribution(report) {
+    const dist = {};
+
+    report.results.forEach(item => {
+      let status = item.declarations.info.conf || "Inconnu";
+      if(status === "partially compliant" || status === "teilweise"){ status = "conformité partielle";}
+
+      dist[status] = (dist[status] || 0) + 1;
+    });
+
+    return dist;
+  }
+
+  function getReferentialDistribution(report) {
+    const dist = {};
+
+    report.results.forEach(item => {
+      const ref = item.declarations.info.referential || "Inconnu";
+      dist[ref] = (dist[ref] || 0) + 1;
+    });
+
+    return dist;
+  }
+
+  function getAuditorDistribution(report) {
+    const dist = {};
+
+    report.results.forEach(item => {
+      const auditor = item.declarations.info.auditorName || "Inconnu";
+      dist[auditor] = (dist[auditor] || 0) + 1;
+    });
+
+    return dist;
+  }
+
+  function getDeclaLastUpdateYear(item){
+    let date = "Inconnu";
+    const renewalDate = item.declarations.info.renewalDate;
+    const createdDate = item.declarations.info.createdDate
+
+    if(renewalDate && renewalDate != "") date = renewalDate.substring(renewalDate.length - 4);
+    else if(createdDate && createdDate != "") date = createdDate.substring(createdDate.length - 4);
+    return date;
+  }
+
+  function getCreatedDateDistribution(report) {
+    const dist = {};
+
+    report.results.forEach(item => {
+      const date = getDeclaLastUpdateYear(item);
+      dist[date] = (dist[date] || 0) + 1;
+    });
+
+    return dist;
+  }
+
+  function createPieChart(canvasId, dataObject, title) {
+    const labels = Object.keys(dataObject);
+    const values = Object.values(dataObject);
+
+    const percentage = (tooltipItems) => {
+      const itemValue = tooltipItems[0].parsed;
+      let sum = 0;
+      tooltipItems[0].dataset.data.forEach(function(val) {
+        sum += val;
+      });
+      return '= ' + (Math.round(itemValue * 100 / sum )).toFixed(2) + '%';
+    };
+
+    new Chart(document.getElementById(canvasId), {
+      type: "pie",
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: [
+            "#4e79a7", "#f28e2b", "#e15759",
+            "#76b7b2", "#59a14f", "#edc948",
+            "#9683EC", "#FD6C9E","#0F056B"
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: { display: true, text: title },
+          legend: {
+            position: 'bottom',
+          },
+          tooltip: {
+            callbacks: {
+              footer : percentage,
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function getPagesNotValid(report) {
+    return report.results.filter(item => item.declarations.valid && item.declarations.valid.trim() !== "");
+  }
+
+  function renderNotValid(latest){
+    const container = document.getElementById('notValid');
+
+    const pagesNotValid = getPagesNotValid(latest);
+    let content = "<h3>Problèmes detectés</h3><ul>"
+    pagesNotValid.forEach(p => {
+      content += `<li><strong>${p.url}</strong>${p.declarations.valid}</li>`;
+    });
+    content += "</ul>"
+    container.innerHTML = content;
+  }
+
+  function cleanSentence(p){
+    return p.trim().replace(/,$/, '').replace(/;$/, '').replace(/\.$/, '').trim();
+  }
+
+  function getMostFrequentNC(report) {
+    const counter = {};
+
+    report.results.forEach(item => {
+      if(item.iso == "FR") {
+        item.declarations.nc.forEach(nc => {
+          nc = cleanSentence(nc);
+          counter[nc] = (counter[nc] || 0) + 1;
+        });
+      }
+    });
+
+    return Object.entries(counter)
+      .sort((a, b) => b[1] - a[1]) // tri desc
+      .map(([text, count]) => ({ text, count }));
+  }
+
+  function getMostFrequentCD(report) {
+    const counter = {};
+
+    report.results.forEach(item => {
+      if(item.iso == "FR") {
+        item.declarations.cd.forEach(cd => {
+          cd = cleanSentence(cd);
+          counter[cd] = (counter[cd] || 0) + 1;
+        });
+      }
+    });
+
+    return Object.entries(counter)
+      .sort((a, b) => b[1] - a[1]) // tri desc
+      .map(([text, count]) => ({ text, count }));
+  }
+
+  function getMostFrequentEX(report) {
+    const counter = {};
+
+    report.results.forEach(item => {
+      if(item.iso == "FR") {
+        item.declarations.ex.forEach(ex => {
+          ex = cleanSentence(ex);
+          counter[ex] = (counter[ex] || 0) + 1;
+        });
+      }
+    });
+
+    return Object.entries(counter)
+      .sort((a, b) => b[1] - a[1]) // tri desc
+      .map(([text, count]) => ({ text, count }));
+  }
+
+  function getOutdatedDeclarations(report) {
+    const now = new Date();
+    return report.results.filter(item => {
+      const declaYear = getDeclaLastUpdateYear(item);
+      return declaYear < (now.getFullYear() - 3)
+    });
+  }
+
+  function renderTooOld(latest){
+    const container = document.getElementById('tooOld');
+    const outdated = getOutdatedDeclarations(latest);
+
+
+    let content = "<h3>Déclaration trop ancienne</h3><ul>"
+    outdated.forEach(p => {
+      content += `<li><strong>${p.url}</strong>(${p.declarations.info.createdDate})</li> `;
+    });
+    content += "</ul>"
+    container.innerHTML = content;
+  }
+
+  function renderTopNC(latest){
+    const container = document.getElementById('topNC');
+
+    const ncRanking = getMostFrequentNC(latest);
+    const cdRanking = getMostFrequentCD(latest);
+    const exRanking = getMostFrequentEX(latest);
+
+    let ncRankingList = "";
+    let cdRankingList = "";
+    let exRankingList = "";
+
+    for(let i=0; i<20; i++){
+      ncRankingList += `<li>${ncRanking[i].text} (${ncRanking[i].count})</li>`;
+      if(i<10) {
+        cdRankingList += `<li>${cdRanking[i].text} (${cdRanking[i].count})</li>`;
+        exRankingList += `<li>${exRanking[i].text} (${exRanking[i].count})</li>`;
+      }
+    }
+
+    container.innerHTML += `
+      <div class="card"><h3>Non-Conformité</h3><ul>${ncRankingList}</ul></div>
+      <div class="card"><h3>Charges-Disproportionnée</h3><ul>${cdRankingList}</ul></div>
+      <div class="card"><h3>Contenu Exempté</h3><ul>${exRankingList}</ul></div>`
+
+  }
+
+  (async () => {
+    const reports = await loadReports();
+    const latest = reports[reports.length - 1];
+    renderLatestDate(latest);
+    renderAverage(latest);
+    createPieChart("chartStatus", getStatusDistribution(latest), "Répartition par status");
+    createPieChart("chartReferential", getReferentialDistribution(latest), "Répartition par référentiel");
+    createPieChart("chartAuditor", getAuditorDistribution(latest), "Répartition par auditeur");
+    createPieChart("chartYear", getCreatedDateDistribution(latest), "Répartition par date de création (ou d'update)");
+    renderNotValid(latest);
+    renderTooOld(latest);
+    renderTopNC(latest);
+  })();
+
+</script>
+</body>
+</html>

@@ -38,7 +38,7 @@ if(nb_cd > 5 ) msg += "<li>Nombre de charges disproportionnées trop important</
 if(nb_ex > 5 ) msg += "<li>Nombre d'exemptions trop important</li>"; 
 if(email_contact == "" ) msg += "<li>Pas d'email de contact</li>";
 if(organization == "" ) msg += "<li>Pas d'organisation indiqué</li>";
-if(auditeur_name == "" ) msg += "<li>Pas d'auditeur induqué</li>";
+if(auditeur_name == "" ) msg += "<li>Pas d'auditeur indiqué</li>";
 if(organization == "" ) msg += "<li>Pas d'organisation indiqué</li>";
 
 if(msg != "") msg = "<ul>"+msg+"</ul>"
