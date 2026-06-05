@@ -19,7 +19,8 @@ const TIMEOUT = 60000; // timeout navigation
 // CHARGEMENT DES DONNÉES
 // ---------------------------------------------
 const pages = JSON.parse(fs.readFileSync(INPUT_FILE, 'utf8'));
-const validPages = pages.filter(p => p.status === 200);
+const pagesObj = 'data' in pages ? pages.data : pages;
+const validPages = pagesObj.filter(p => p.status === 200);
 
 console.log(`➡️  ${validPages.length} pages à analyser\n`);
 
@@ -160,6 +161,7 @@ async function analysePage(browser, pageInfo) {
       id: pageInfo.id,
       url: pageInfo.url,
       iso: pageInfo.iso,
+      framework: pageInfo.framework ? pageInfo.framework.trim() : "",
       originalTitle: pageInfo.title,
       ...result
     };

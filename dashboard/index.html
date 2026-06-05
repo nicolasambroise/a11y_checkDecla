@@ -36,9 +36,11 @@
   gap: 1.5rem;
   }
 
+
+
   @media (min-width: 900px) {
     .grid-4 {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(2, 1fr);
     }
     .grid-3 {
     grid-template-columns: repeat(3, 1fr);
@@ -46,6 +48,12 @@
     .grid-2 {
     grid-template-columns: repeat(2, 1fr);
     }
+  }
+
+  @media (min-width: 1700px) {
+      .grid-4 {
+          grid-template-columns: repeat(4, 1fr);
+      }
   }
 
   .card {
@@ -131,13 +139,21 @@
 
   function getAverageCounts(report) {
     let totalNC = 0, totalCD = 0, totalEX = 0;
-    const totalPages = report.results.length;
+    let totalNCv3 = 0, totalCDv3 = 0, totalEXv3 = 0;
+    let totalPages = 0, totalPagesv3 = 0;
 
     report.results.forEach(item => {
       if ('declarations' in item){
         totalNC += item.declarations.nc.length;
         totalCD += item.declarations.cd.length;
         totalEX += item.declarations.ex.length;
+        totalPages++;
+        if(item.framework == "Skizz 3") {
+          totalNCv3 += item.declarations.nc.length;
+          totalCDv3 += item.declarations.cd.length;
+          totalEXv3 += item.declarations.ex.length;
+          totalPagesv3++;
+        }
       }
       else{console.log(item);}
     });
@@ -145,7 +161,10 @@
     return {
       avgNC: (totalNC / totalPages).toFixed(2),
       avgCD: (totalCD / totalPages).toFixed(2),
-      avgEX: (totalEX / totalPages).toFixed(2)
+      avgEX: (totalEX / totalPages).toFixed(2),
+      avgNCv3: (totalNCv3 / totalPagesv3).toFixed(2),
+      avgCDv3: (totalCDv3 / totalPagesv3).toFixed(2),
+      avgEXv3: (totalEXv3 / totalPagesv3).toFixed(2)
     };
   }
 
@@ -154,9 +173,9 @@
     //console.log(latest);
     const container = document.getElementById('summary');
     container.innerHTML = `
-    <div class="card"><h3>Nombre moyen de non-conformité</h3>${averages.avgNC}</div>
-    <div class="card"><h3>Nombre moyen de charge disproportionnée</h3>${averages.avgCD}</div>
-    <div class="card"><h3>Nombre moyen de contenu exempté</h3>${averages.avgEX}</div>
+    <div class="card"><h3>Nombre moyen de non-conformité</h3><p>All : ${averages.avgNC}</p><p>Seulement v3 : ${averages.avgNCv3}</p></div>
+    <div class="card"><h3>Nombre moyen de charge disproportionnée</h3><p>All : ${averages.avgCD}</p><p>Seulement v3 : ${averages.avgCDv3}</p></div>
+    <div class="card"><h3>Nombre moyen de contenu exempté</h3><p>All : ${averages.avgEX}</p><p>Seulement v3 : ${averages.avgEXv3}</p></div>
     `;
   }
 
@@ -283,7 +302,7 @@
     const pagesNotValid = getPagesNotValid(latest);
     let content = "<h3>Problèmes detectés</h3><ul>"
     pagesNotValid.forEach(p => {
-      content += `<li><strong>${p.url}</strong>${p.declarations ? p.declarations.valid : p.error}</li>`;
+      content += `<li><strong>${p.url}</strong>(${p.framework})${p.declarations ? p.declarations.valid : p.error}</li>`;
     });
     content += "</ul>"
     container.innerHTML = content;
@@ -356,10 +375,9 @@
     const container = document.getElementById('tooOld');
     const outdated = getOutdatedDeclarations(latest);
 
-
     let content = "<h3>Déclaration trop ancienne</h3><ul>"
     outdated.forEach(p => {
-      content += `<li><strong>${p.url}</strong> (${p.declarations.info.createdDate})</li> `;
+      content += `<li><strong>${p.url}</strong> (${p.framework} - ${p.declarations.info.createdDate})</li> `;
     });
     content += "</ul>"
     container.innerHTML = content;
